@@ -2922,7 +2922,6 @@ img.u-pull-left {
  *
  *
  * ------------------------------------------------------------------- */
-
 .s-header {
     --box-shadow : 0 1px 1px rgba(0, 0, 0, 0.06), 0 2px 2px rgba(0, 0, 0, 0.06), 0 4px 4px rgba(0, 0, 0, 0.06), 0 8px 8px rgba(0, 0, 0, 0.06);
     z-index      : 100;
@@ -2931,7 +2930,6 @@ img.u-pull-left {
     top          : 0;
     left         : 0;
 }
-
 .header-mobile {
     z-index          : 101;
     display          : none;
@@ -2939,6 +2937,16 @@ img.u-pull-left {
     background-color : var(--color-body);
     box-shadow       : var(--box-shadow);
     border-bottom    : 1px solid var(--color-border);
+}
+.home-link {
+    padding-left: 0 !important;
+}
+.home-link img {
+    width: auto;
+    height: 64px;
+    padding: 0;
+    margin: 0;
+    display: block;
 }
 
 /* --------------------------------------------------------------------
