@@ -3724,8 +3724,9 @@ img.u-pull-left {
 
 .folio-list__item-title {
     font-family : var(--font-1);
-    font-weight : 500;
-    font-size   : var(--text-lg);
+    font-weight : 700;
+    font-size   : var(--text-sm);
+    text-transform: uppercase;
 }
 
 .folio-list__item-cat {
