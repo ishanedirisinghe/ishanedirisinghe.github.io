@@ -825,12 +825,10 @@ button.swiper-pagination-bullet {
 }
 
 .basicLightbox__placeholder {
-    max-width   : 100%;
-    transform   : scale(0.9);
-    transition  : all 0.4s ease;
-    z-index     : 1;
-    will-change : transform;
-    opacity     : 0;
+    height: 92%;
+    overflow-y: auto;
+    transform: scale(1);
+    opacity: 1;
 }
 
 .basicLightbox__placeholder>iframe:first-child:last-child,

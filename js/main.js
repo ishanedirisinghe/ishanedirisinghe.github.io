@@ -248,32 +248,53 @@
     const ssLightbox = function() {
 
         const folioLinks = document.querySelectorAll('.folio-list__item-link');
-        const modals = [];
-
-        folioLinks.forEach(function(link) {
-            let modalbox = link.getAttribute('href');
-            let instance = basicLightbox.create(
-                document.querySelector(modalbox),
-                {
-                    onShow: function(instance) {
-                        //detect Escape key press
-                        document.addEventListener("keydown", function(event) {
-                            event = event || window.event;
-                            if (event.keyCode === 27) {
-                                instance.close();
-                            }
-                        });
-                    }
-                }
-            )
-            modals.push(instance);
-        });
+        
+        console.log('Initializing lightbox for', folioLinks.length, 'folio links');
 
         folioLinks.forEach(function(link, index) {
-            link.addEventListener("click", function(event) {
-                event.preventDefault();
-                modals[index].show();
-            });
+            const href = link.getAttribute('href');
+            
+            // Only handle links that start with # (modal links)
+            if (href && href.startsWith('#')) {
+                const modalElement = document.querySelector(href);
+                
+                console.log('Setting up modal for:', href, 'Element found:', !!modalElement);
+                
+                if (modalElement) {
+                    // Create lightbox instance for this specific link
+                    const instance = basicLightbox.create(
+                        modalElement,
+                        {
+                            onShow: function(instance) {
+                                console.log('Modal opened:', href);
+                                // Detect Escape key press
+                                const escapeHandler = function(event) {
+                                    if (event.keyCode === 27) {
+                                        instance.close();
+                                        document.removeEventListener("keydown", escapeHandler);
+                                    }
+                                };
+                                document.addEventListener("keydown", escapeHandler);
+                            },
+                            onClose: function(instance) {
+                                console.log('Modal closed:', href);
+                                return true;
+                            }
+                        }
+                    );
+
+                    // Add click event listener
+                    link.addEventListener("click", function(event) {
+                        event.preventDefault();
+                        console.log('Modal link clicked:', href);
+                        instance.show();
+                    });
+                } else {
+                    console.warn('Modal element not found for:', href);
+                }
+            } else {
+                console.log('Skipping non-modal link:', href);
+            }
         });
 
     };  // end ssLightbox
@@ -346,10 +367,134 @@
     }; // end ssMoveTo
 
 
+   /* Portfolio Filter
+    * ------------------------------------------------------ */
+    const ssPortfolioFilter = function() {
+        
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', ssPortfolioFilter);
+            return;
+        }
+        
+        const filterLinks = document.querySelectorAll('.folio-filter__link');
+        const portfolioItems = document.querySelectorAll('.folio-list__item');
+        
+        console.log('DOM Ready - Portfolio filter checking for elements...');
+        console.log('Filter links found:', filterLinks.length);
+        console.log('Portfolio items found:', portfolioItems.length);
+        
+        if (!filterLinks.length || !portfolioItems.length) {
+            console.warn('Portfolio filter: Missing elements. Links:', filterLinks.length, 'Items:', portfolioItems.length);
+            return;
+        }
+        
+        console.log('Portfolio filter initialized successfully');
+        
+        // Add click event to each filter link
+        filterLinks.forEach((link, index) => {
+            console.log('Adding event listener to link', index, ':', link.textContent);
+            
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('=== Filter clicked ===');
+                console.log('Filter:', this.getAttribute('data-filter'));
+                console.log('Text:', this.textContent);
+                
+                // Remove active class from all links
+                filterLinks.forEach(filterLink => {
+                    filterLink.classList.remove('active');
+                });
+                
+                // Add active class to clicked link
+                this.classList.add('active');
+                console.log('Active class added to:', this.textContent);
+                
+                // Get filter value
+                const filterValue = this.getAttribute('data-filter');
+                
+                // Shuffle animation for portfolio items
+                const shuffleItems = () => {
+                    // First, identify which items will be visible
+                    const visibleItems = [];
+                    const hiddenItems = [];
+                    
+                    portfolioItems.forEach((item, itemIndex) => {
+                        const itemClasses = Array.from(item.classList);
+                        
+                        if (filterValue === '*') {
+                            visibleItems.push({ item, index: itemIndex });
+                        } else {
+                            const filterClass = filterValue.replace('.', '');
+                            if (item.classList.contains(filterClass)) {
+                                visibleItems.push({ item, index: itemIndex });
+                            } else {
+                                hiddenItems.push({ item, index: itemIndex });
+                            }
+                        }
+                    });
+                    
+                    console.log('Visible items:', visibleItems.length, 'Hidden items:', hiddenItems.length);
+                    
+                    // Step 1: Animate out items that will be hidden
+                    hiddenItems.forEach(({ item, index }) => {
+                        console.log('✗ Animating out item', index);
+                        item.classList.add('filtering', 'animate-out');
+                        item.classList.remove('animate-in');
+                    });
+                    
+                    // Step 2: Wait for exit animations, then hide items
+                    setTimeout(() => {
+                        hiddenItems.forEach(({ item }) => {
+                            item.classList.add('hidden');
+                            item.classList.remove('animate-out', 'filtering');
+                            item.style.display = 'none';
+                        });
+                        
+                        // Step 3: Show and animate in visible items with staggered timing
+                        visibleItems.forEach(({ item, index }, arrayIndex) => {
+                            console.log('✓ Animating in item', index);
+                            
+                            // Reset item state
+                            item.classList.remove('hidden', 'animate-out');
+                            item.style.display = 'block';
+                            
+                            // Add shuffle-in state
+                            item.classList.add('shuffle-in');
+                            
+                            // Stagger the animations
+                            setTimeout(() => {
+                                item.classList.remove('shuffle-in');
+                                item.classList.add('filtering', 'animate-in');
+                                
+                                // Clean up animation classes after animation completes
+                                setTimeout(() => {
+                                    item.classList.remove('animate-in', 'filtering');
+                                }, 800);
+                                
+                            }, arrayIndex * 100); // 100ms stagger delay
+                        });
+                        
+                    }, 600); // Wait for exit animation to complete
+                };
+                
+                // Execute shuffle animation
+                shuffleItems();
+                
+                console.log('=== Filter complete ===');
+            });
+        });
+        
+    }; // end ssPortfolioFilter
+
+
    /* Initialize
     * ------------------------------------------------------ */
     (function ssInit() {
 
+        ssPortfolioFilter(); // Initialize portfolio filter first
         ssPreloader();
         ssMobileMenu();
         ssScrollSpy();
